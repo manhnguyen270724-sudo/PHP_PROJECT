@@ -39,7 +39,7 @@
                     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     foreach ($rows as $row) {
                 ?>
-                <img width="100%" height="100%" src="<?= htmlspecialchars($row['image'], ENT_QUOTES, 'UTF-8'); ?>" alt="">
+                <img class="bg-img" src="<?= htmlspecialchars($row['image'], ENT_QUOTES, 'UTF-8'); ?>" alt="">
             <?php }
                 } catch (PDOException $e) {
                     error_log('Slide fetch error: ' . $e->getMessage());

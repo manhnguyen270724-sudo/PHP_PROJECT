@@ -17,14 +17,10 @@
     <link rel="stylesheet" 
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-    <style>
-        body {
-            background: #f5f5f7;
-        }
-    </style>
+    <!-- register background moved to css/style.css -->
 </head>
 
-<body class="flex items-center justify-center min-h-screen px-4">
+<body class="flex items-center justify-center min-h-screen px-4 register-body">
 
     <div class="w-full max-w-md bg-white shadow-xl rounded-2xl p-8">
 

@@ -59,7 +59,7 @@ if (isset($_GET['addps'])) {
                 <tr>
                     <td><?= htmlspecialchars($p['id']); ?></td>
                     <td>
-                        <img src="<?= htmlspecialchars($p['image']); ?>" alt="<?= htmlspecialchars($p['name']); ?>" width="100">
+                        <img src="<?= htmlspecialchars($p['image']); ?>" alt="<?= htmlspecialchars($p['name']); ?>" class="thumb-img">
                     </td>
                     <td><?= htmlspecialchars($p['name']); ?></td>
                     <td>

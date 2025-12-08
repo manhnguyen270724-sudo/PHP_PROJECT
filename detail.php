@@ -45,7 +45,7 @@
 
             <!-- IMAGE -->
             <div class="col-md-6 col-sm-12">
-                <img src="<?php echo $thum_Image; ?>" width="100%" height="450">
+                <img src="<?php echo $thum_Image; ?>" class="product-image product-image-lg">
             </div>
 
             <!-- INFO -->

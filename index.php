@@ -169,14 +169,12 @@ if (isset($_SESSION['cart'])) {
                                             <div class="product-info">
                                                 <a href="addcart.php?id=<?= $kq['id']; ?>">
                                                     <button class="btn btn-primary">
-                                                        <label style="color:red;">&hearts;</label> Mua hàng <label
-                                                            style="color:red;">&hearts;</label>
+                                                        <label class="heart">&hearts;</label> Mua hàng <label class="heart">&hearts;</label>
                                                     </button>
                                                 </a>
                                                 <a href="detail.php?id=<?= $kq['id']; ?>">
                                                     <button class="btn btn-primary">
-                                                        <label style="color:red;">&hearts;</label> Chi tiết <label
-                                                            style="color:red;">&hearts;</label>
+                                                        <label class="heart">&hearts;</label> Chi tiết <label class="heart">&hearts;</label>
                                                     </button>
                                                 </a>
                                             </div>

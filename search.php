@@ -59,7 +59,7 @@ if (isset($_POST['search']) && !empty($_POST['search'])) {
         $sqlSlide = "SELECT image FROM slides WHERE id = 1";
         $stmtSlide = $conn->query($sqlSlide);
         while ($row = $stmtSlide->fetch(PDO::FETCH_ASSOC)) { ?>
-            <img width="100%" height="100%" src="<?php echo $row['image']; ?>" alt="">
+            <img class="bg-img" src="<?php echo $row['image']; ?>" alt="">
         <?php } ?>
     </div>
 </div>
@@ -67,13 +67,13 @@ if (isset($_POST['search']) && !empty($_POST['search'])) {
 <!-- Header -->
 <?php include("model/header.php"); ?>
 
-<div class="container">
-    <ul class="breadcrumb">
-        <li><a href="index.php">Trang chủ</a></li>
-        <li>Tìm kiếm sản phẩm</li>
-    </ul>
-
     <div class="container">
+        <ul class="breadcrumb">
+            <li><a href="index.php">Trang chủ</a></li>
+            <li>Tìm kiếm sản phẩm</li>
+        </ul>
+
+        <div class="container search-results">
         <div class="product-main">
             <div class="title-product-main">
                 <h3 class="section-title">Kết Quả Tìm Kiếm</h3>
@@ -91,7 +91,7 @@ if (isset($_POST['search']) && !empty($_POST['search'])) {
                         <div class="col-md-3 col-sm-6 text-center">
                             <div class="thumbnail">
                                 <div class="hoverimage1">
-                                    <img src="<?php echo $kq['image']; ?>" width="100%" height="300">
+                                    <img class="product-image" src="<?php echo $kq['image']; ?>">
                                 </div>
                                 <div class="name-product"><?php echo $kq['name']; ?></div>
                                 <div class="price">Giá: <?php echo $kq['price']; ?><sup>đ</sup></div>

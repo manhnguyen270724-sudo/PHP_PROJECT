@@ -17,7 +17,7 @@ if (isset($_GET['ls'])) {
 
         <!-- Logo -->
         <a href="index.php" class="d-flex align-items-center mb-2 mb-lg-0 text-dark text-decoration-none">
-            <img src="images/logohong.png" width="160" alt="MyLiShop Logo">
+            <img src="images/logohong.png" class="logo-img" alt="MyLiShop Logo">
         </a>
 
         <!-- User Account -->
