@@ -1,0 +1,230 @@
+:root {
+    --primary: #007bff; /* Xanh dương chuẩn Bootstrap */
+    --danger: #dc3545;
+    --success: #28a745;
+    --warning: #ffc107;
+    --dark: #343a40;
+    --light: #f8f9fa;
+    --sidebar-bg: #2c3e50; /* Màu xanh đen cổ điển của dân code */
+}
+
+body {
+    background: #e9ecef; /* Màu xám nhẹ phổ thông */
+    font-family: Arial, Helvetica, sans-serif; /* Font cơ bản nhất */
+    font-size: 14px;
+}
+
+/* Sidebar vuông vức, màu đơn sắc */
+.sidebar {
+    background: var(--sidebar-bg); 
+    min-height: 100vh;
+    color: #ecf0f1;
+    padding: 0; /* Bỏ padding thừa */
+    position: fixed;
+    width: 250px;
+    /* Bỏ shadow lòe loẹt, dùng border phải nhẹ */
+    border-right: 1px solid #dee2e6;
+}
+
+.sidebar .logo {
+    text-align: center;
+    padding: 15px;
+    background: #1a252f; /* Đậm hơn nền sidebar một chút */
+    margin-bottom: 10px;
+    border-bottom: 1px solid #4b5d67;
+}
+
+.sidebar .logo h3 {
+    font-weight: bold;
+    margin: 0;
+    font-size: 20px;
+    text-transform: uppercase;
+}
+
+.sidebar .nav-link {
+    color: #b8c7ce;
+    padding: 10px 20px;
+    margin: 0; /* Bỏ margin để các ô sát nhau */
+    border-radius: 0; /* Vuông vức, không bo tròn */
+    border-left: 3px solid transparent;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+}
+
+/* Hiệu ứng hover kiểu cổ điển: sáng lên và có vạch màu bên trái */
+.sidebar .nav-link:hover,
+.sidebar .nav-link.active {
+    background: #34495e;
+    color: #fff;
+    border-left-color: var(--primary); /* Vạch màu xanh */
+    transform: none; /* Bỏ hiệu ứng bay */
+}
+
+.sidebar .nav-link i {
+    width: 20px;
+    text-align: center;
+}
+
+.main-content {
+    margin-left: 250px;
+    padding: 20px;
+}
+
+/* Header đơn giản hóa */
+.header-bar {
+    background: white;
+    padding: 15px 20px;
+    border-radius: 4px; /* Bo góc nhẹ */
+    border: 1px solid #dee2e6; /* Thêm viền mỏng */
+    box-shadow: none; /* Bỏ bóng đổ */
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Card thống kê kiểu khối hộp */
+.stat-card {
+    background: white;
+    border-radius: 4px; /* Bo góc chuẩn Bootstrap 4 */
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1); /* Bóng mờ rất nhẹ */
+    transition: none; /* Bỏ transition mượt */
+    border: 1px solid #dee2e6;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card:hover {
+    transform: none; /* Không bay lên nữa */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Thêm thanh màu trên đầu card thay vì viền bên trái */
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+}
+
+.stat-card.primary::before { background: var(--primary); }
+.stat-card.success::before { background: var(--success); }
+.stat-card.warning::before { background: var(--warning); }
+.stat-card.danger::before { background: var(--danger); }
+
+/* Icon đơn giản, không nền gradient */
+.stat-card .icon {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: auto;
+    height: auto;
+    font-size: 40px;
+    color: #e9ecef; /* Màu xám mờ làm nền */
+    background: none;
+    display: block;
+}
+
+/* Nếu muốn icon có màu theo loại thẻ */
+.stat-card.primary .icon { color: rgba(0, 123, 255, 0.2); }
+.stat-card.success .icon { color: rgba(40, 167, 69, 0.2); }
+.stat-card.warning .icon { color: rgba(255, 193, 7, 0.2); }
+.stat-card.danger .icon { color: rgba(220, 53, 69, 0.2); }
+
+.stat-card h3 {
+    font-size: 28px;
+    font-weight: bold;
+    margin: 5px 0;
+    color: #333;
+}
+
+.stat-card p {
+    color: #666;
+    margin: 0;
+    font-size: 14px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+/* Content card giống panel */
+.content-card {
+    background: white;
+    border-radius: 4px;
+    padding: 0; /* Padding xử lý bên trong */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    border: 1px solid #dee2e6;
+    margin-bottom: 20px;
+}
+
+.content-card h5 {
+    font-weight: 600;
+    margin: 0;
+    padding: 15px 20px;
+    background-color: #f7f7f7; /* Nền xám cho tiêu đề card */
+    border-bottom: 1px solid #dee2e6;
+    color: #333;
+    font-size: 16px;
+}
+
+.content-card .card-body {
+    padding: 20px;
+}
+
+/* Table chuẩn chỉnh */
+.table {
+    width: 100%;
+    margin-bottom: 1rem;
+    color: #212529;
+    border-collapse: collapse;
+}
+
+.table th {
+    border-bottom: 2px solid #dee2e6;
+    background-color: #fff;
+    color: #495057;
+}
+
+.table td, .table th {
+    padding: 0.75rem;
+    vertical-align: top;
+    border-top: 1px solid #dee2e6;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0,0,0,.075);
+}
+
+.badge-status {
+    padding: 4px 8px;
+    border-radius: 3px; /* Bo góc ít */
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.product-thumb {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border: 1px solid #dee2e6; /* Thêm viền cho ảnh */
+    border-radius: 3px;
+}
+
+.action-btn {
+    padding: 5px 10px;
+    margin: 0 2px;
+    border-radius: 3px;
+    font-size: 12px;
+    border: none;
+    cursor: pointer;
+    color: white;
+}
+.action-btn.edit { background-color: var(--warning); color: #212529; }
+.action-btn.delete { background-color: var(--danger); }

@@ -13,10 +13,10 @@
     <meta name="author" content="Y Blir" />
     <link rel="icon" type="image/png" href="images/logohong.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"> -->
     <!-- <link rel="stylesheet" href="css/bootstrap.min.css"> -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> -->
     <!-- <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script> -->
     <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css'>
     <script src='js/wow.js'></script>
@@ -28,25 +28,7 @@
     <!-- button top -->
     <a href="#" class="back-to-top"><i class="fa fa-arrow-up"></i></a>
     
-    <!-- background -->
-    <div class="container-fluid">
-        <div id="bg">
-            <!-- <img width="100%" height="100%" src="images/background.jpg" /> -->
-            <?php
-                try {
-                    $stmt = $conn->prepare('SELECT image FROM slides WHERE id = :id');
-                    $stmt->execute([':id' => 1]);
-                    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                    foreach ($rows as $row) {
-                ?>
-                <img class="bg-img" src="<?= htmlspecialchars($row['image'], ENT_QUOTES, 'UTF-8'); ?>" alt="">
-            <?php }
-                } catch (PDOException $e) {
-                    error_log('Slide fetch error: ' . $e->getMessage());
-                }
-            ?>
-        </div>
-    </div><!-- /background -->
+
 
     <!-- Header -->
     <?php include("model/header.php"); ?>

@@ -38,7 +38,7 @@ $partners = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </div>
 
 <!-- partner styles moved to `css/style.css` -->
-
+<style>
     .partner-item img {
         width: 100%;
         height: 100%;

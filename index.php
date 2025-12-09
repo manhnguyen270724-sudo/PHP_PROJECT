@@ -20,13 +20,13 @@ if (isset($_SESSION['cart'])) {
     <meta name="author" content="Y Blir" /> -->
     <link rel="icon" type="image/png" href="images/logohong.png">
 
-    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"> -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" type="text/css" href="admin/bower_components/font-awesome/css/font-awesome.min.css">
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
-    <!-- <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js" charset="utf-8"></script> -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js" charset="utf-8"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-    <!-- <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css'> -->
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css'>
 
     <!-- customer js -->
     <script src='js/wow.js'></script>
@@ -81,7 +81,7 @@ if (isset($_SESSION['cart'])) {
                                     <div class="col-md-3 col-sm-6 text-center">
                                         <div class="thumbnail">
                                                 <div class="hoverimage1">
-                                                <img class="product-image" src="<?= $kq['image']; ?>">
+                                                <img class="product-image" src="<?= $kq['image']; ?>" >
                                             </div>
                                             <div class="name-product"><?= $kq['name']; ?></div>
                                             <div class="price">Giá: <?= $kq['price']; ?><sup>đ</sup></div>
