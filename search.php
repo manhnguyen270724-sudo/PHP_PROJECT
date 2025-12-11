@@ -1,42 +1,48 @@
 <?php
+session_start(); // SỬA LỖI 1: Đưa lên đầu trang để tránh lỗi Header
 require_once('model/connect.php');
-session_start();
-// Initialize variables
+
+// Khởi tạo biến
 $searchKeyword = '';
 $searchResults = [];
 $totalResults = 0;
 $errorMessage = '';
 $hasSearched = false;
 
-// Handle search request
+// Xử lý khi người dùng tìm kiếm
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $hasSearched = true;
     
     if (isset($_POST['search']) && !empty(trim($_POST['search']))) {
         $searchKeyword = trim($_POST['search']);
-        
-        // Sanitize search keyword (remove special characters for display)
         $displayKeyword = htmlspecialchars($searchKeyword, ENT_QUOTES, 'UTF-8');
         
         try {
-            // Prepare and execute search query
+            // SỬA LỖI 2: Sử dụng :key1, :key2, :key3 vì ATTR_EMULATE_PREPARES = false
+            // Câu lệnh SQL lấy dữ liệu để đổ ra div
             $sql = "SELECT id, image, name, price, saleprice, quantity, status 
                     FROM products 
-                    WHERE name LIKE :keyword 
-                    OR description LIKE :keyword 
-                    OR keyword LIKE :keyword
+                    WHERE name LIKE :key1 
+                    OR description LIKE :key2 
+                    OR keyword LIKE :key3
                     ORDER BY id DESC";
             
             $stmt = $conn->prepare($sql);
             $searchParam = "%{$searchKeyword}%";
-            $stmt->bindParam(':keyword', $searchParam, PDO::PARAM_STR);
+            
+            // Bind tham số riêng biệt cho từng vị trí
+            $stmt->bindParam(':key1', $searchParam, PDO::PARAM_STR);
+            $stmt->bindParam(':key2', $searchParam, PDO::PARAM_STR);
+            $stmt->bindParam(':key3', $searchParam, PDO::PARAM_STR);
+            
             $stmt->execute();
             
+            // Lấy toàn bộ kết quả vào mảng
             $searchResults = $stmt->fetchAll(PDO::FETCH_ASSOC);
             $totalResults = count($searchResults);
             
         } catch (PDOException $e) {
-            error_log('Search query error: ' . $e->getMessage());
+            error_log('Lỗi tìm kiếm: ' . $e->getMessage());
             $errorMessage = 'Đã xảy ra lỗi khi tìm kiếm. Vui lòng thử lại sau.';
         }
         
@@ -45,33 +51,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Calculate cart items count
-$cartCount = isset($_SESSION['cart']) ? count($_SESSION['cart']) : 0;
-
-/**
- * Format price with Vietnamese currency
- * @param float $price
- * @return string
- */
+// Các hàm hỗ trợ hiển thị
 function formatPrice($price) {
     return number_format($price, 0, ',', '.') . 'đ';
 }
 
-/**
- * Calculate sale price
- * @param float $originalPrice
- * @param float $salePercent
- * @return float
- */
 function calculateSalePrice($originalPrice, $salePercent) {
     return $originalPrice - ($originalPrice * $salePercent / 100);
 }
 
-/**
- * Get product availability status
- * @param array $product
- * @return bool
- */
 function isProductAvailable($product) {
     return ($product['status'] == 1 || $product['quantity'] > 0);
 }
@@ -81,97 +69,51 @@ function isProductAvailable($product) {
 <html lang="vi">
 <head>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tìm kiếm<?php echo $searchKeyword ? ': ' . htmlspecialchars($searchKeyword) : ''; ?> - MyLiShop</title>
-    
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="Tìm kiếm sản phẩm thời trang tại MyLiShop - <?php echo htmlspecialchars($searchKeyword); ?>">
-    <meta name="keywords" content="tìm kiếm thời trang, <?php echo htmlspecialchars($searchKeyword); ?>, MyLiShop">
-    
-    <!-- Favicon -->
+    <title>Tìm kiếm: <?php echo htmlspecialchars($searchKeyword); ?> - MyLiShop</title>
     <link rel="icon" type="image/png" href="images/logohong.png">
     
-    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    
-    <!-- Custom CSS - Main Stylesheet -->
     <link rel="stylesheet" href="css/style.css">
-    
-    <!-- Custom CSS - Search Page Stylesheet -->
     <link rel="stylesheet" href="css/search.css">
 </head>
 
 <body>
 
-<!-- Header -->
 <?php include("model/header.php"); ?>
 
-<!-- Search Header -->
 <div class="search-header">
     <div class="container">
-        <h1 class="search-title">
-            <i class="fas fa-search"></i> Kết quả tìm kiếm
-        </h1>
+        <h1 class="search-title"><i class="fas fa-search"></i> Kết quả tìm kiếm</h1>
         <?php if ($searchKeyword): ?>
-            <p class="search-subtitle">
-                Từ khóa: <span class="search-keyword"><?= htmlspecialchars($searchKeyword); ?></span>
-            </p>
+            <p class="search-subtitle">Từ khóa: <span class="search-keyword"><?= htmlspecialchars($searchKeyword); ?></span></p>
         <?php endif; ?>
     </div>
 </div>
 
-<!-- Main Content -->
 <div class="container">
     
-    <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="index.php"><i class="fas fa-home"></i> Trang chủ</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Tìm kiếm</li>
-        </ol>
-    </nav>
-    
-    <!-- Error Message -->
     <?php if ($errorMessage): ?>
-        <div class="error-alert" role="alert">
-            <i class="fas fa-exclamation-triangle"></i>
-            <div>
-                <strong>Lỗi!</strong> <?= htmlspecialchars($errorMessage); ?>
-            </div>
+        <div class="alert alert-danger" role="alert">
+            <i class="fas fa-exclamation-triangle"></i> <?= htmlspecialchars($errorMessage); ?>
         </div>
     <?php endif; ?>
     
     <?php if ($hasSearched && !$errorMessage): ?>
         
-        <!-- Results Summary -->
-        <div class="results-summary">
+        <div class="results-summary mb-4">
             <div class="results-count">
-                Tìm thấy <span class="number"><?= $totalResults; ?></span> sản phẩm
+                Tìm thấy <span class="text-danger fw-bold"><?= $totalResults; ?></span> sản phẩm
             </div>
-            
-            <?php if ($totalResults > 0): ?>
-            <div class="filter-section">
-                <label for="sortSelect" class="mb-0">Sắp xếp:</label>
-                <select id="sortSelect" class="sort-select" aria-label="Sắp xếp sản phẩm">
-                    <option value="default">Mặc định</option>
-                    <option value="price-asc">Giá: Thấp đến cao</option>
-                    <option value="price-desc">Giá: Cao đến thấp</option>
-                    <option value="name-asc">Tên: A-Z</option>
-                    <option value="name-desc">Tên: Z-A</option>
-                </select>
-            </div>
-            <?php endif; ?>
         </div>
         
         <?php if ($totalResults > 0): ?>
             
-            <!-- Product Grid -->
             <div class="product-grid" id="productGrid">
+                
                 <?php foreach ($searchResults as $product): 
+                    // Xử lý dữ liệu trước khi hiển thị
                     $productId = (int)$product['id'];
                     $productName = htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8');
                     $productImage = htmlspecialchars($product['image'], ENT_QUOTES, 'UTF-8');
@@ -182,32 +124,24 @@ function isProductAvailable($product) {
                     $isAvailable = isProductAvailable($product);
                 ?>
                 
-                <article class="product-card" data-price="<?= $finalPrice; ?>" data-name="<?= strtolower($productName); ?>">
-                    <!-- Product Image -->
+                <article class="product-card" data-price="<?= $finalPrice; ?>" data-name="<?= htmlspecialchars($productName); ?>">
                     <div class="product-image-wrapper">
                         <img src="<?= $productImage; ?>" alt="<?= $productName; ?>" class="product-image" loading="lazy">
                         
-                        <!-- Badges -->
                         <div class="product-badges">
                             <?php if ($hasSale): ?>
-                                <span class="badge-sale">
-                                    <i class="fas fa-fire"></i> -<?= $salePercent; ?>%
-                                </span>
+                                <span class="badge-sale"><i class="fas fa-fire"></i> -<?= $salePercent; ?>%</span>
                             <?php endif; ?>
                             
                             <?php if (!$isAvailable): ?>
-                                <span class="badge-out-of-stock">
-                                    <i class="fas fa-times-circle"></i> Hết hàng
-                                </span>
+                                <span class="badge-out-of-stock"><i class="fas fa-times-circle"></i> Hết hàng</span>
                             <?php endif; ?>
                         </div>
                     </div>
                     
-                    <!-- Product Body -->
                     <div class="product-body">
                         <h3 class="product-name"><?= $productName; ?></h3>
                         
-                        <!-- Price -->
                         <div class="product-price-section">
                             <span class="product-current-price"><?= formatPrice($finalPrice); ?></span>
                             <?php if ($hasSale): ?>
@@ -215,14 +149,13 @@ function isProductAvailable($product) {
                             <?php endif; ?>
                         </div>
                         
-                        <!-- Actions -->
                         <div class="product-actions">
-                            <a href="detail.php?id=<?= $productId; ?>" class="btn-view-detail" aria-label="Xem chi tiết <?= $productName; ?>">
+                            <a href="detail.php?id=<?= $productId; ?>" class="btn-view-detail">
                                 <i class="fas fa-eye"></i> Chi tiết
                             </a>
                             
                             <?php if ($isAvailable): ?>
-                                <a href="addcart.php?id=<?= $productId; ?>" class="btn-add-to-cart" title="Thêm vào giỏ hàng" aria-label="Thêm <?= $productName; ?> vào giỏ hàng">
+                                <a href="addcart.php?id=<?= $productId; ?>" class="btn-add-to-cart">
                                     <i class="fas fa-shopping-cart"></i>
                                 </a>
                             <?php endif; ?>
@@ -232,57 +165,22 @@ function isProductAvailable($product) {
                 
                 <?php endforeach; ?>
             </div>
-            
-        <?php else: ?>
-            
-            <!-- No Results -->
-            <div class="no-results">
-                <div class="no-results-icon">
-                    <i class="fas fa-search"></i>
-                </div>
-                <h2 class="no-results-title">Không tìm thấy sản phẩm phù hợp</h2>
-                <p class="no-results-text">
-                    Rất tiếc, chúng tôi không tìm thấy sản phẩm nào với từ khóa 
-                    "<strong><?= htmlspecialchars($searchKeyword); ?></strong>"
-                </p>
-                
-                <a href="index.php" class="btn btn-primary">
-                    <i class="fas fa-home"></i> Quay về trang chủ
-                </a>
-                
-                <!-- Suggestions -->
-                <div class="suggestions">
-                    <h4 class="suggestions-title">Gợi ý tìm kiếm:</h4>
-                    <ul>
-                        <li>Kiểm tra lại chính tả từ khóa</li>
-                        <li>Thử sử dụng từ khóa ngắn gọn hơn</li>
-                        <li>Sử dụng các từ khóa tổng quát hơn</li>
-                        <li>Thử tìm với các từ đồng nghĩa</li>
-                    </ul>
-                </div>
+            <?php else: ?>
+            <div class="no-results text-center py-5">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h2 class="no-results-title">Không tìm thấy sản phẩm nào</h2>
+                <a href="index.php" class="btn btn-primary mt-3"><i class="fas fa-home"></i> Về trang chủ</a>
             </div>
-            
         <?php endif; ?>
         
     <?php endif; ?>
     
 </div>
 
-<!-- Footer -->
 <div class="container">
     <?php include("model/footer.php"); ?>
 </div>
 
-<!-- Back to Top -->
-<a href="#" class="back-to-top" aria-label="Lên đầu trang">
-    <i class="fas fa-arrow-up"></i>
-</a>
-
-<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- Custom JavaScript -->
-<script src="js/search.js"></script>
-
 </body>
 </html>

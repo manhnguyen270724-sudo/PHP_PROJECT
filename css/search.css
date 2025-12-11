@@ -332,143 +332,104 @@
    PRODUCT BODY
    =============================================== */
 
-.product-body {
-    padding: 20px;
+.product-main {
+    padding: var(--space-lg) 0;
+}
+
+.content-product-main {
+    padding: var(--space-md) 0;
+}
+
+.thumbnail {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: var(--space-md);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    height: 100%;
     display: flex;
     flex-direction: column;
-    flex: 1;
+    border: 1px solid var(--border);
 }
 
-.product-name {
+.thumbnail:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-lg);
+}
+
+.hoverimage1 {
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-md);
+    position: relative;
+}
+
+.product-image {
+    width: 100%;
+    height: 280px;
+    object-fit: cover;
+    transition: var(--transition);
+}
+
+.hoverimage1:hover .product-image {
+    transform: scale(1.1);
+}
+
+/* Product overlay effect */
+.hoverimage1::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 50%);
+    opacity: 0;
+    transition: var(--transition);
+}
+
+.hoverimage1:hover::after {
+    opacity: 1;
+}
+
+.name-product {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #2c3e50;
-    margin-bottom: 12px;
-    min-height: 52px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    line-height: 1.4;
-}
-
-/* Highlighted search keyword */
-.product-name mark {
-    background: #ffeb3b;
-    padding: 2px 4px;
-    border-radius: 3px;
-    font-weight: 700;
-}
-
-/* ===============================================
-   PRODUCT PRICE
-   =============================================== */
-
-.product-price-section {
-    margin-bottom: 16px;
-}
-
-.product-current-price {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #FF6B6B;
-    display: inline-block;
-}
-
-.product-original-price {
-    font-size: 1rem;
-    color: #95a5a6;
-    text-decoration: line-through;
-    margin-left: 8px;
-    display: inline-block;
-}
-
-/* ===============================================
-   PRODUCT ACTIONS
-   =============================================== */
-
-.product-actions {
+    color: var(--dark);
+    margin-bottom: var(--space-sm);
+    min-height: 50px;
     display: flex;
-    gap: 8px;
+    align-items: center;
+}
+
+.price {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: var(--space-md);
+}
+
+.price sup {
+    font-size: 0.8rem;
+    margin-left: 2px;
+}
+
+.product-info {
+    display: flex;
+    gap: var(--space-sm);
     margin-top: auto;
 }
 
-.btn-view-detail {
+.product-info .btn {
     flex: 1;
-    padding: 10px 16px;
-    background: #2c3e50;
-    color: white;
-    border: none;
-    border-radius: 50px;
-    font-weight: 600;
     font-size: 0.9rem;
-    transition: all 0.3s ease;
-    text-align: center;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
+    padding: var(--space-xs) var(--space-sm);
 }
 
-.btn-view-detail:hover {
-    background: #34495e;
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(44, 62, 80, 0.3);
+.heart {
+    color: var(--primary);
 }
 
-.btn-add-to-cart {
-    width: 44px;
-    height: 44px;
-    background: linear-gradient(135deg, #FF6B6B 0%, #EE5A52 100%);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    text-decoration: none;
-    flex-shrink: 0;
-}
-
-.btn-add-to-cart:hover {
-    transform: scale(1.1) rotate(5deg);
-    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
-    color: white;
-}
-
-.btn-add-to-cart i {
-    font-size: 1rem;
-}
-
-/* ===============================================
-   ERROR ALERT
-   =============================================== */
-
-.error-alert {
-    background: #fff3cd;
-    border: 2px solid #ffc107;
-    color: #856404;
-    padding: 20px;
-    border-radius: 12px;
-    margin-bottom: 24px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.error-alert i {
-    font-size: 1.5rem;
-    flex-shrink: 0;
-}
-
-.error-alert strong {
-    font-weight: 700;
-}
 
 /* ===============================================
    ANIMATIONS

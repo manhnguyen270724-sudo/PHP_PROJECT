@@ -1,6 +1,5 @@
 <?php
 session_start();
-error_reporting(E_ALL ^ E_DEPRECATED);
 require_once('../model/connect.php');
 
 if (!isset($_POST['submit'])) {
@@ -57,7 +56,6 @@ try {
     $_SESSION['error'] = 'Tên đăng nhập hoặc mật khẩu không hợp lệ!';
     header('Location: ../user/login.php?error=wrong');
     exit;
-
 } catch (PDOException $e) {
     error_log('Login error: ' . $e->getMessage());
     $_SESSION['error'] = 'Lỗi hệ thống. Vui lòng thử lại sau.';
@@ -66,4 +64,3 @@ try {
 }
 ?>
 <?php
- 

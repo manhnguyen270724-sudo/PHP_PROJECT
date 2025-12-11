@@ -1,16 +1,6 @@
 <?php
-/**
- * Admin Dashboard - MyLiShop
- * Trang quản trị chính với thống kê và quản lý
- */
 session_start();
 require_once('../model/connect.php');
-
-// Kiểm tra đăng nhập admin (nếu có hệ thống auth)
-// if (!isset($_SESSION['admin_logged_in'])) {
-//     header('Location: login.php');
-//     exit;
-// }
 
 // Lấy thống kê cơ bản
 try {
@@ -22,26 +12,55 @@ try {
     $stmt = $conn->query("SELECT COUNT(*) as total FROM orders");
     $totalOrders = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
-    // Tổng số liên hệ
-    $stmt = $conn->query("SELECT COUNT(*) as total FROM contacts");
+    // Đơn hàng chờ xử lý
+    $stmt = $conn->query("SELECT COUNT(*) as total FROM orders WHERE status = 0");
+    $pendingOrders = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+
+    // Tổng doanh thu (chỉ đơn hàng đã hoàn thành - status = 1)
+    $stmt = $conn->query("SELECT SUM(total) as revenue FROM orders WHERE status = 1");
+    $totalRevenue = $stmt->fetch(PDO::FETCH_ASSOC)['revenue'] ?? 0;
+
+    // Tổng số khách hàng
+    $stmt = $conn->query("SELECT COUNT(*) as total FROM users");
+    $totalUsers = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+
+    // Tổng số liên hệ chưa xử lý
+    $stmt = $conn->query("SELECT COUNT(*) as total FROM contacts WHERE status = 0");
     $totalContacts = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
     // Tổng số danh mục
     $stmt = $conn->query("SELECT COUNT(*) as total FROM categories");
     $totalCategories = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
-    // Sản phẩm mới nhất
-    $stmt = $conn->query("SELECT id, name, image, price, created FROM products ORDER BY created DESC LIMIT 5");
+    // Sản phẩm mới nhất (5 sản phẩm)
+    $stmt = $conn->query("SELECT id, name, image, price, created FROM products ORDER BY id DESC LIMIT 5");
     $recentProducts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Đơn hàng mới nhất
-    $stmt = $conn->query("SELECT id, name, phone, total, created FROM orders ORDER BY created DESC LIMIT 5");
+    // Đơn hàng mới nhất (5 đơn) - sử dụng đúng cấu trúc bảng orders
+    $stmt = $conn->query("
+        SELECT o.id, o.total, o.date_order, o.status, u.fullname, u.phone
+        FROM orders o
+        JOIN users u ON o.user_id = u.id
+        ORDER BY o.date_order DESC
+        LIMIT 5
+    ");
     $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Sản phẩm sắp hết hàng (số lượng < 5)
+    $stmt = $conn->query("
+        SELECT id, name, quantity, image
+        FROM products
+        WHERE quantity < 5
+        ORDER BY quantity ASC
+        LIMIT 5
+    ");
+    $lowStockProducts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
     error_log('Dashboard stats error: ' . $e->getMessage());
-    $totalProducts = $totalOrders = $totalContacts = $totalCategories = 0;
-    $recentProducts = $recentOrders = [];
+    $totalProducts = $totalOrders = $totalContacts = $totalCategories = $pendingOrders = $totalUsers = 0;
+    $totalRevenue = 0;
+    $recentProducts = $recentOrders = $lowStockProducts = [];
 }
 
 // Xử lý thông báo
@@ -49,8 +68,10 @@ $successMsg = '';
 $errorMsg = '';
 if (isset($_GET['addps'])) $successMsg = 'Thêm sản phẩm thành công!';
 if (isset($_GET['ps'])) $successMsg = 'Xóa sản phẩm thành công!';
+if (isset($_GET['us'])) $successMsg = 'Cập nhật trạng thái đơn hàng thành công!';
 if (isset($_GET['pf'])) $errorMsg = 'Thao tác thất bại!';
 ?>
+
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -91,7 +112,7 @@ if (isset($_GET['pf'])) $errorMsg = 'Thao tác thất bại!';
             <a class="nav-link" href="category-list.php">
                 <i class="fas fa-tags"></i> Danh mục
             </a>
-            <a class="nav-link" href="order-list.php">
+            <a class="nav-link" href="order-detail.php">
                 <i class="fas fa-shopping-cart"></i> Đơn hàng
             </a>
             <a class="nav-link" href="contact-list.php">
@@ -252,7 +273,7 @@ if (isset($_GET['pf'])) $errorMsg = 'Thao tác thất bại!';
                                     <tr>
                                         <td><span class="badge bg-secondary">#<?= $o['id'] ?></span></td>
                                         <td>
-                                            <div><?= htmlspecialchars($o['name']) ?></div>
+                                            <div><?= htmlspecialchars($o['fullname']) ?></div>
                                             <small class="text-muted"><?= htmlspecialchars($o['phone']) ?></small>
                                         </td>
                                         <td><strong class="text-success"><?= number_format($o['total']) ?>đ</strong></td>
@@ -286,7 +307,7 @@ if (isset($_GET['pf'])) $errorMsg = 'Thao tác thất bại!';
                     </a>
                 </div>
                 <div class="col-md-3">
-                    <a href="order-list.php" class="btn btn-success w-100">
+                    <a href="orderlist.php" class="btn btn-success w-100">
                         <i class="fas fa-list"></i> Quản lý đơn hàng
                     </a>
                 </div>

@@ -1,136 +1,108 @@
 <?php
-require_once('../model/connect.php');
+require_once __DIR__ . '/../model/connect.php';
 
+// Kiểm tra xem user có nhấn nút thêm không
 if (!isset($_POST['addProduct'])) {
     header("Location: productadd.php");
     exit();
 }
 
-// --- Lấy dữ liệu form ---
-$namePr = trim($_POST['txtName'] ?? '');
+// --- 1. LẤY DỮ LIỆU FORM ---
+$namePr     = trim($_POST['txtName'] ?? '');
 $categoryPr = $_POST['category'] ?? '';
-$pricePr = (float)($_POST['txtPrice'] ?? 0);
-$salePercent = (float)($_POST['txtSalePrice'] ?? 0);
+$pricePr    = (float)($_POST['txtPrice'] ?? 0);
+$salePercent = (float)($_POST['txtSalePrice'] ?? 0); // Đây là % giảm giá (VD: 10, 20)
 $quantityPr = (int)($_POST['txtNumber'] ?? 0);
-$keywordPr = trim($_POST['txtKeyword'] ?? '');
+$keywordPr  = trim($_POST['txtKeyword'] ?? '');
 $descriptPr = trim($_POST['txtDescript'] ?? '');
-$status = 1; // mặc định active
+$status     = 1; // Mặc định là hiển thị
 
-// Tính giá sau giảm
-$salePricePr = ($salePercent > 0) ? round($pricePr * (100 - $salePercent) / 100) : null;
-
-// Validate required fields
+// Validate dữ liệu cơ bản
 if (empty($namePr) || empty($categoryPr) || $pricePr <= 0) {
-    header("Location: productadd.php?error=invalid");
+    header("Location: productadd.php?notimage=invalid");
     exit();
 }
 
-// --- Xử lý upload ảnh ---
+// --- 2. XỬ LÝ UPLOAD ẢNH ---
 if (!isset($_FILES['FileImage']) || $_FILES['FileImage']['error'] != 0) {
-    header("Location: productadd.php?notimage=1");
+    header("Location: productadd.php?notimage=1"); // Lỗi không có file
     exit();
 }
 
-$imageTmp = $_FILES['FileImage']['tmp_name'];
-$imageName = basename($_FILES['FileImage']['name']);
-$imageName = preg_replace("/[^a-zA-Z0-9_\.-]/", "_", $imageName);
-$targetDir = "../uploads/";
-$targetFile = $targetDir . $imageName;
+$file = $_FILES['FileImage'];
+$fileName = $file['name'];
+$fileTmp  = $file['tmp_name'];
+$fileSize = $file['size'];
 
-// Tạo thư mục upload nếu chưa tồn tại
-if (!is_dir($targetDir)) {
+// Kiểm tra định dạng file (Chỉ cho phép ảnh)
+$allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+$fileExt = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+
+if (!in_array($fileExt, $allowed)) {
+    header("Location: productadd.php?notimage=6"); // Sai định dạng
+    exit();
+}
+
+// Kiểm tra dung lượng (Giới hạn 5MB)
+if ($fileSize > 5 * 1024 * 1024) {
+    header("Location: productadd.php?notimage=4"); // File quá lớn
+    exit();
+}
+
+// --- QUAN TRỌNG: TẠO ĐƯỜNG DẪN TUYỆT ĐỐI ---
+// __DIR__ giúp trỏ đúng về thư mục admin, sau đó đi ra ngoài (..) vào uploads
+$targetDir = __DIR__ . '/../uploads/';
+
+// Tạo thư mục uploads nếu chưa có
+if (!file_exists($targetDir)) {
     if (!mkdir($targetDir, 0777, true)) {
-        header("Location: productadd.php?notimage=5");
+        header("Location: productadd.php?notimage=5"); // Không tạo được thư mục
         exit();
     }
 }
 
-// Kiểm tra thư mục có quyền ghi không
-if (!is_writable($targetDir)) {
-    header("Location: productadd.php?notimage=5");
-    exit();
-}
+// Tạo tên file mới ngẫu nhiên để tránh trùng lặp (VD: 65a8b...jpg)
+$newFileName = uniqid('img_', true) . "." . $fileExt;
+$destination = $targetDir . $newFileName;
 
-// Kiểm tra file ảnh
-$check = getimagesize($imageTmp);
-if ($check === false) {
-    header("Location: productadd.php?notimage=2");
-    exit();
-}
+// Đường dẫn sẽ lưu vào Database (tương đối để hiển thị ở web)
+$dbPath = "uploads/" . $newFileName;
 
-// Kiểm tra định dạng file hợp lệ
-$allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-if (!in_array($check['mime'], $allowedTypes)) {
-    header("Location: productadd.php?notimage=6");
-    exit();
-}
+// --- 3. TIẾN HÀNH UPLOAD VÀ LƯU DB ---
+if (move_uploaded_file($fileTmp, $destination)) {
+    try {
+        $sql = "INSERT INTO products 
+                (name, category_id, image, description, price, saleprice, created, quantity, keyword, status)
+                VALUES (:name, :category, :image, :description, :price, :sale, NOW(), :quantity, :keyword, :status)";
+        
+        $stmt = $conn->prepare($sql);
+        $result = $stmt->execute([
+            ':name'        => $namePr,
+            ':category'    => $categoryPr,
+            ':image'       => $dbPath,      // Lưu đường dẫn uploads/ten_anh.jpg
+            ':description' => $descriptPr,
+            ':price'       => $pricePr,
+            ':sale'        => $salePercent, // Lưu đúng số % giảm giá (VD: 10)
+            ':quantity'    => $quantityPr,
+            ':keyword'     => $keywordPr,
+            ':status'      => $status
+        ]);
 
-// Kiểm tra kích thước file (5MB)
-$maxFileSize = 5 * 1024 * 1024;
-if ($_FILES['FileImage']['size'] > $maxFileSize) {
-    header("Location: productadd.php?notimage=4");
-    exit();
-}
+        if ($result) {
+            header("Location: index.php?addps=success");
+        } else {
+            // Xóa ảnh nếu insert DB thất bại để tránh rác
+            if (file_exists($destination)) unlink($destination);
+            header("Location: productadd.php?notimage=7"); // Lỗi DB
+        }
 
-// Nếu file tồn tại → đổi tên
-$i = 1;
-$baseName = pathinfo($imageName, PATHINFO_FILENAME);
-$ext = strtolower(pathinfo($imageName, PATHINFO_EXTENSION));
-$imageName = $baseName . "." . $ext;
-$targetFile = $targetDir . $imageName;
-
-while (file_exists($targetFile)) {
-    $imageName = $baseName . "_" . $i . "." . $ext;
-    $targetFile = $targetDir . $imageName;
-    $i++;
-}
-
-// Di chuyển file
-if (!move_uploaded_file($imageTmp, $targetFile)) {
-    // Kiểm tra lỗi cụ thể
-    $uploadError = $_FILES['FileImage']['error'];
-    switch ($uploadError) {
-        case UPLOAD_ERR_INI_SIZE:
-        case UPLOAD_ERR_FORM_SIZE:
-            header("Location: productadd.php?notimage=4");
-            break;
-        default:
-            header("Location: productadd.php?notimage=3");
-    }
-    exit();
-}
-
-// --- Insert vào DB ---
-try {
-    $sql = "INSERT INTO products 
-            (name, category_id, image, description, price, saleprice, created, quantity, keyword, status)
-            VALUES (:name, :category, :image, :description, :price, :saleprice, NOW(), :quantity, :keyword, :status)";
-    
-    $stmt = $conn->prepare($sql);
-    $result = $stmt->execute([
-        ':name' => $namePr,
-        ':category' => $categoryPr,
-        ':image' => "uploads/" . $imageName,
-        ':description' => $descriptPr,
-        ':price' => $pricePr,
-        ':saleprice' => $salePricePr,
-        ':quantity' => $quantityPr,
-        ':keyword' => $keywordPr,
-        ':status' => $status
-    ]);
-
-    // --- Redirect về trang index ---
-    if ($result) {
-        header("Location: index.php?addps=success");
-    } else {
+    } catch (PDOException $e) {
+        if (file_exists($destination)) unlink($destination);
+        error_log("Add Product Error: " . $e->getMessage());
         header("Location: productadd.php?notimage=7");
     }
-} catch (PDOException $e) {
-    // Xóa file ảnh đã upload nếu insert thất bại
-    if (file_exists($targetFile)) {
-        unlink($targetFile);
-    }
-    header("Location: productadd.php?notimage=7");
+} else {
+    header("Location: productadd.php?notimage=3"); // Lỗi khi di chuyển file
 }
 exit();
 ?>

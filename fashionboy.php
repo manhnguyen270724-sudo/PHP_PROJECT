@@ -58,7 +58,7 @@
                                             $name = htmlspecialchars($kq['name'], ENT_QUOTES, 'UTF-8');
                                             $price = number_format($kq['price']);
                                 ?>
-                                        <div class="col-md-3 col-sm-6 text-center">
+                                        <div class="col-md-3 col-sm-6">
                                             <div class="thumbnail">
                                                     <div class="hoverimage1">
                                                     <img class="product-image" src="<?= $img; ?>" alt="<?= $name; ?>">
