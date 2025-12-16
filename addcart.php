@@ -50,11 +50,17 @@ try {
     
     // Nếu chưa có thì thêm mới
     if (!$found) {
+        // Calculate actual price with sale percentage if applicable
+        $salePercent = (float)$product['saleprice'];
+        $finalPrice = $salePercent > 0 ? $product['price'] - ($product['price'] * $salePercent / 100) : $product['price'];
+        
         $cartItem = [
             'id' => $product['id'],
             'name' => $product['name'],
             'image' => $product['image'],
-            'price' => $product['saleprice'] > 0 ? $product['saleprice'] : $product['price'],
+            'price' => $finalPrice,
+            'original_price' => $product['price'],
+            'sale_percent' => $salePercent,
             'quantity' => 1,
             'max_quantity' => $product['quantity']
         ];

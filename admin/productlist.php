@@ -64,8 +64,8 @@ if (isset($_GET['addps'])) {
                     <td><?= htmlspecialchars($p['name']); ?></td>
                     <td>
                         <?= number_format($p['price']); ?> đ
-                        <?php if ($p['saleprice'] !== null): ?>
-                            <br><small class="text-success">Sale: <?= number_format($p['saleprice']); ?> đ</small>
+                        <?php if ($p['saleprice'] !== null && $p['saleprice'] > 0): ?>
+                            <br><small class="text-success">Sale: <?= number_format($p['saleprice']); ?>%</small>
                         <?php endif; ?>
                     </td>
                     <td><?= $p['quantity']; ?></td>

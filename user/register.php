@@ -61,6 +61,21 @@ require_once('../model/connect.php');
                 <i class="fa-solid fa-circle-exclamation mr-2"></i>
                 <span>Đăng ký thất bại! Tên đăng nhập hoặc Email đã tồn tại.</span>
             </div>
+        <?php elseif (isset($_GET['error']) && $_GET['error'] == 'empty_fields'): ?>
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 text-sm flex items-center">
+                <i class="fa-solid fa-circle-exclamation mr-2"></i>
+                <span>Vui lòng điền đầy đủ thông tin!</span>
+            </div>
+        <?php elseif (isset($_GET['error']) && $_GET['error'] == 'password_mismatch'): ?>
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 text-sm flex items-center">
+                <i class="fa-solid fa-circle-exclamation mr-2"></i>
+                <span>Mật khẩu nhập lại không khớp!</span>
+            </div>
+        <?php elseif (isset($_GET['error']) && $_GET['error'] == 'user_exists'): ?>
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 text-sm flex items-center">
+                <i class="fa-solid fa-circle-exclamation mr-2"></i>
+                <span>Tên đăng nhập hoặc Email đã tồn tại!</span>
+            </div>
         <?php endif; ?>
 
         <form action="register-back.php" method="POST" class="space-y-4">

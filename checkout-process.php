@@ -2,160 +2,97 @@
 session_start();
 require_once('model/connect.php');
 
-// Kiểm tra giỏ hàng
+// 1. Kiểm tra giỏ hàng
 if (!isset($_SESSION['cart']) || empty($_SESSION['cart'])) {
     header('Location: view-cart.php');
     exit;
 }
 
-// Kiểm tra dữ liệu POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: checkout.php');
     exit;
 }
 
-// Lấy thông tin từ form
-$customerName = trim($_POST['customer_name'] ?? '');
-$customerPhone = trim($_POST['customer_phone'] ?? '');
-$customerEmail = trim($_POST['customer_email'] ?? '');
-$customerAddress = trim($_POST['customer_address'] ?? '');
-$orderNote = trim($_POST['order_note'] ?? '');
-$paymentMethod = $_POST['payment_method'] ?? 'cod';
+// 2. Lấy dữ liệu từ Form
+$name = trim($_POST['customer_name'] ?? '');
+$phone = trim($_POST['customer_phone'] ?? '');
+$email = trim($_POST['customer_email'] ?? '');
+$address = trim($_POST['customer_address'] ?? '');
+$note = trim($_POST['order_note'] ?? '');
+$payment = $_POST['payment_method'] ?? 'cod';
 
-// Validate dữ liệu
-if (empty($customerName) || empty($customerPhone) || empty($customerEmail) || empty($customerAddress)) {
-    header('Location: checkout.php?error=missing_fields');
-    exit;
-}
-
-// Validate email
-if (!filter_var($customerEmail, FILTER_VALIDATE_EMAIL)) {
-    header('Location: checkout.php?error=invalid_email');
-    exit;
-}
-
-// Validate phone
-if (!preg_match('/^[0-9]{10,11}$/', $customerPhone)) {
-    header('Location: checkout.php?error=invalid_phone');
-    exit;
-}
+// User ID (Mặc định là 0 nếu chưa đăng nhập, vì bảng orders của bạn user_id NOT NULL DEFAULT '0')
+$userId = isset($_SESSION['id-user']) ? $_SESSION['id-user'] : 0;
 
 // Tính tổng tiền
-$totalAmount = 0;
+$totalMoney = 0;
 foreach ($_SESSION['cart'] as $item) {
-    $totalAmount += $item['price'] * $item['quantity'];
+    $totalMoney += $item['price'] * $item['quantity'];
 }
 
-// Bắt đầu transaction
 try {
     $conn->beginTransaction();
-    
-    // 1. Tạo đơn hàng
-    $orderCode = 'ORD' . date('YmdHis') . rand(1000, 9999);
-    
-    $sqlOrder = "INSERT INTO orders (
-        order_code, 
-        customer_name, 
-        customer_phone, 
-        customer_email, 
-        customer_address, 
-        total_amount, 
-        payment_method, 
-        order_note, 
-        status, 
-        created_at
-    ) VALUES (
-        :order_code, 
-        :customer_name, 
-        :customer_phone, 
-        :customer_email, 
-        :customer_address, 
-        :total_amount, 
-        :payment_method, 
-        :order_note, 
-        'pending', 
-        NOW()
-    )";
+
+    // --- A. INSERT VÀO BẢNG `orders` ---
+    // Khớp với cấu trúc: id, total, date_order, status, user_id, customer_name...
+    $sqlOrder = "INSERT INTO orders (total, date_order, status, user_id, customer_name, customer_phone, customer_email, customer_address, note, payment_method) 
+                 VALUES (:total, NOW(), 0, :uid, :name, :phone, :email, :addr, :note, :method)";
     
     $stmtOrder = $conn->prepare($sqlOrder);
     $stmtOrder->execute([
-        ':order_code' => $orderCode,
-        ':customer_name' => $customerName,
-        ':customer_phone' => $customerPhone,
-        ':customer_email' => $customerEmail,
-        ':customer_address' => $customerAddress,
-        ':total_amount' => $totalAmount,
-        ':payment_method' => $paymentMethod,
-        ':order_note' => $orderNote
+        ':total' => $totalMoney,
+        ':uid' => $userId,
+        ':name' => $name,
+        ':phone' => $phone,
+        ':email' => $email,
+        ':addr' => $address,
+        ':note' => $note,
+        ':method' => $payment
     ]);
     
     $orderId = $conn->lastInsertId();
+
+    // --- B. INSERT VÀO BẢNG `product_order` ---
+    // Bảng này có: product_id, order_id, quantity
+    $sqlDetail = "INSERT INTO product_order (product_id, order_id, quantity) VALUES (:pid, :oid, :qty)";
+    $stmtDetail = $conn->prepare($sqlDetail);
     
-    // 2. Thêm chi tiết đơn hàng
-    $sqlOrderDetail = "INSERT INTO order_details (
-        order_id, 
-        product_id, 
-        product_name, 
-        product_image, 
-        price, 
-        quantity, 
-        subtotal
-    ) VALUES (
-        :order_id, 
-        :product_id, 
-        :product_name, 
-        :product_image, 
-        :price, 
-        :quantity, 
-        :subtotal
-    )";
-    
-    $stmtOrderDetail = $conn->prepare($sqlOrderDetail);
-    
+    // --- C. TRỪ TỒN KHO BẢNG `products` ---
+    // Sửa lỗi Invalid parameter number: Dùng tên biến khác nhau cho các tham số
+    $sqlUpdateQty = "UPDATE products SET quantity = quantity - :qty_sub WHERE id = :pid_check AND quantity >= :qty_check";
+    $stmtUpdateQty = $conn->prepare($sqlUpdateQty);
+
     foreach ($_SESSION['cart'] as $item) {
-        $subtotal = $item['price'] * $item['quantity'];
-        
-        $stmtOrderDetail->execute([
-            ':order_id' => $orderId,
-            ':product_id' => $item['id'],
-            ':product_name' => $item['name'],
-            ':product_image' => $item['image'],
-            ':price' => $item['price'],
-            ':quantity' => $item['quantity'],
-            ':subtotal' => $subtotal
+        // 1. Lưu chi tiết đơn hàng
+        $stmtDetail->execute([
+            ':pid' => $item['id'],
+            ':oid' => $orderId,
+            ':qty' => $item['quantity']
         ]);
         
-        // 3. Cập nhật số lượng sản phẩm
-        $sqlUpdateQty = "UPDATE products 
-                        SET quantity = quantity - :quantity 
-                        WHERE id = :id AND quantity >= :quantity";
-        $stmtUpdateQty = $conn->prepare($sqlUpdateQty);
+        // 2. Trừ kho (Truyền đủ 3 tham số để tránh lỗi)
         $stmtUpdateQty->execute([
-            ':quantity' => $item['quantity'],
-            ':id' => $item['id']
+            ':qty_sub' => $item['quantity'],      // Số lượng cần trừ
+            ':pid_check' => $item['id'],          // ID sản phẩm
+            ':qty_check' => $item['quantity']     // Kiểm tra xem có đủ hàng không
         ]);
-        
-        // Kiểm tra có cập nhật được không
+
+        // Kiểm tra nếu trừ kho lỗi (do hết hàng)
         if ($stmtUpdateQty->rowCount() == 0) {
-            throw new Exception("Sản phẩm " . $item['name'] . " không đủ số lượng trong kho");
+            throw new Exception("Sản phẩm " . $item['name'] . " đã hết hàng.");
         }
     }
-    
-    // Commit transaction
+
     $conn->commit();
     
-    // Xóa giỏ hàng
+    // Xóa giỏ hàng và thông báo thành công
     unset($_SESSION['cart']);
-    
-    // Redirect đến trang thành công
-    header('Location: order-success.php?order_code=' . $orderCode);
+    header('Location: index.php?order_success=1');
     exit;
-    
+
 } catch (Exception $e) {
-    // Rollback nếu có lỗi
     $conn->rollBack();
-    error_log('Order processing error: ' . $e->getMessage());
-    header('Location: checkout.php?error=processing_failed&message=' . urlencode($e->getMessage()));
+    echo "<script>alert('Lỗi đặt hàng: " . $e->getMessage() . "'); window.location.href='view-cart.php';</script>";
     exit;
 }
 ?>

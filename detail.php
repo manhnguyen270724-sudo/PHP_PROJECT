@@ -39,22 +39,34 @@ $isInStock = $product['status'] == 1 || $product['quantity'] > 0;
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="utf-8">
+   <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $productName; ?> - MyLiShop</title>
+    <title>Tiêu đề trang - Fashion MyLiShop</title>
+    
     <link rel="icon" type="image/png" href="images/logohong.png">
     
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="admin/bower_components/font-awesome/css/font-awesome.min.css">
+    
+    <!-- Bootstrap 3 -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js" charset="utf-8"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    
+    <!-- Animate CSS -->
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css'>
+    
+    <!-- Custom JS -->
+    <script src='js/wow.js'></script>
+    <script type="text/javascript" src="js/mylishop.js"></script>
     
     <!-- Custom CSS -->
+    <link rel="stylesheet" type="text/css" href="css/animate.css">
     <link rel="stylesheet" href="css/style.css">
-    <!-- Css -->
-     <link rel="stylesheet" href="css/detail.css">
 </head>
 <body>
 

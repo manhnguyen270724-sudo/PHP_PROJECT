@@ -3,6 +3,7 @@ require_once("../model/connect.php");
 
 $product = null;
 $errorMsg = '';
+$successMsg = '';
 
 // Validate product ID
 if (!isset($_GET['idProduct']) || !is_numeric($_GET['idProduct'])) {
@@ -11,8 +12,8 @@ if (!isset($_GET['idProduct']) || !is_numeric($_GET['idProduct'])) {
     $idProduct = (int)$_GET['idProduct'];
     
     // Messages
-    if (isset($_GET['es'])) echo "<script>alert('Bạn đã sửa sản phẩm thành công!');</script>";
-    if (isset($_GET['ef'])) echo "<script>alert('Sửa sản phẩm thất bại!');</script>";
+    if (isset($_GET['es'])) $successMsg = 'Bạn đã sửa sản phẩm thành công!';
+    if (isset($_GET['ef'])) $errorMsg = 'Sửa sản phẩm thất bại!';
     if (isset($_GET['error'])) $errorMsg = 'Đã xảy ra lỗi. Vui lòng thử lại.';
 
     // Fetch product
@@ -48,6 +49,13 @@ if (!isset($_GET['idProduct']) || !is_numeric($_GET['idProduct'])) {
 
     <div class="row justify-content-center">
         <div class="col-lg-8 form-section">
+            <?php if ($successMsg): ?>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle"></i> <?= htmlspecialchars($successMsg); ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
+            
             <?php if ($errorMsg): ?>
                 <div class="alert alert-danger"><?= htmlspecialchars($errorMsg); ?></div>
             <?php elseif ($product): ?>

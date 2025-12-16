@@ -54,6 +54,16 @@
                 <i class="fa-solid fa-circle-exclamation mr-2"></i>
                 <span>Tên đăng nhập hoặc mật khẩu không đúng!</span>
             </div>
+        <?php elseif (isset($_GET['error']) && $_GET['error'] == 'invalid_credentials'): ?>
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 text-sm flex items-center">
+                <i class="fa-solid fa-circle-exclamation mr-2"></i>
+                <span>Sai tên đăng nhập hoặc mật khẩu!</span>
+            </div>
+        <?php elseif (isset($_GET['error']) && $_GET['error'] == 'empty_fields'): ?>
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 text-sm flex items-center">
+                <i class="fa-solid fa-circle-exclamation mr-2"></i>
+                <span>Vui lòng nhập đầy đủ thông tin!</span>
+            </div>
         <?php endif; ?>
 
         <?php if (isset($_GET['rs']) && $_GET['rs'] == 'success'): ?>

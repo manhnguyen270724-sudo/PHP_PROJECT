@@ -1,18 +1,15 @@
 <?php
     require_once('model/connect.php');
+    $successMessage = '';
+    $errorMessage = '';
+    
     // Success
     if(isset($_GET['cs'])) {
-        echo "<script type=\"text/javascript\">alert(\"Gửi liên hệ thành công!\");</script>";
-    }
-    else {
-        echo "";
+        $successMessage = 'Gửi liên hệ thành công!';
     }
     // Fail
     if(isset($_GET['cf'])) {
-        echo "<script type=\"text/javascript\">alert(\"Gửi liên hệ thất bại!\");</script>";
-    }
-    else {
-        echo "";
+        $errorMessage = 'Gửi liên hệ thất bại!';
     }
 ?>
 
@@ -44,15 +41,27 @@
     <!-- button top -->
     <a href="#" class="back-to-top"><i class="fa fa-arrow-up"></i></a>
     
-    <!-- header -->
-    <?php include 'model/header.php'; ?>
-    <!-- /header -->
     
     <div class="container contact-container">
     <ul class="breadcrumb">
         <li><a href="../index.php">Trang chủ</a></li>
         <li>Liên hệ</li>
     </ul>
+    
+    <?php if ($successMessage): ?>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i> <?= htmlspecialchars($successMessage); ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
+    
+    <?php if ($errorMessage): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle"></i> <?= htmlspecialchars($errorMessage); ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
+    
     <div class="card shadow-sm contact-card">
         <h3 class="text-center contact-title">
             THÔNG TIN LIÊN HỆ

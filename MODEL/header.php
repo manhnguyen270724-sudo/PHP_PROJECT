@@ -23,7 +23,7 @@ $prd = isset($_SESSION['cart']) ? count($_SESSION['cart']) : 0;
                             <i class="fa fa-user me-1"></i> <?= htmlspecialchars($_SESSION['username']); ?>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#">Hồ sơ</a></li>
+                            <li><a class="dropdown-item" href="profile.php">Hồ sơ</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-danger" href="user/logout.php">Đăng xuất</a></li>
                         </ul>

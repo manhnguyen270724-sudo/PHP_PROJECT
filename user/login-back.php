@@ -1,66 +1,66 @@
 <?php
+// FILE: user/login-back.php
 session_start();
 require_once('../model/connect.php');
 
 if (!isset($_POST['submit'])) {
-    header('Location: ../user/login.php');
+    header('Location: login.php');
     exit;
 }
 
 $username = trim($_POST['username'] ?? '');
 $password = $_POST['password'] ?? '';
 
-if ($username === '' || $password === '') {
-    $_SESSION['error'] = 'Tên đăng nhập hoặc mật khẩu không hợp lệ!';
-    header('Location: ../user/login.php?error=wrong');
+if (empty($username) || empty($password)) {
+    header('Location: login.php?error=empty_fields');
     exit;
 }
 
 try {
-    $sql = 'SELECT id, username, password FROM users WHERE username = :username LIMIT 1';
-    $stmt = $conn->prepare($sql);
-    $stmt->execute([':username' => $username]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    // --- 1. KIỂM TRA TÀI KHOẢN ADMIN TRƯỚC ---
+    // Vì bảng admin tách riêng, ta phải query bảng admin trước
+    $stmtAdmin = $conn->prepare("SELECT * FROM admin WHERE username = :u AND password = :p LIMIT 1");
+    $stmtAdmin->execute([
+        ':u' => $username,
+        ':p' => $password // So sánh trực tiếp password thường
+    ]);
+    
+    $admin = $stmtAdmin->fetch(PDO::FETCH_ASSOC);
 
-    if ($user) {
-        $hash = $user['password'];
-
-        // Support bcrypt/password_hash and legacy md5. If legacy md5 matches, upgrade to password_hash.
-        $valid = false;
-        if (password_verify($password, $hash)) {
-            $valid = true;
-        } elseif (strlen($hash) === 32 && md5($password) === $hash) {
-            // legacy md5 match; upgrade to stronger hash
-            $valid = true;
-            $newHash = password_hash($password, PASSWORD_DEFAULT);
-            try {
-                $uSql = 'UPDATE users SET password = :ph WHERE id = :id';
-                $uStmt = $conn->prepare($uSql);
-                $uStmt->execute([':ph' => $newHash, ':id' => $user['id']]);
-            } catch (Exception $e) {
-                // non-fatal: continue login even if upgrade fails
-                error_log('Password upgrade failed for user ' . $user['id'] . ': ' . $e->getMessage());
-            }
-        }
-
-        if ($valid) {
-            // Successful login
-            $_SESSION['username'] = $user['username'];
-            $_SESSION['id-user'] = $user['id'];
-            header('Location: ../view-cart.php?ls=success');
-            exit;
-        }
+    if ($admin) {
+        // Nếu là Admin
+        $_SESSION['admin'] = $admin['username'];
+        $_SESSION['admin_id'] = $admin['id'];
+        $_SESSION['role'] = 'admin'; // Đánh dấu quyền
+        header('Location: ../admin/index.php');
+        exit;
     }
 
-    // Authentication failed
-    $_SESSION['error'] = 'Tên đăng nhập hoặc mật khẩu không hợp lệ!';
-    header('Location: ../user/login.php?error=wrong');
+    // --- 2. NẾU KHÔNG PHẢI ADMIN, KIỂM TRA USER ---
+    $stmtUser = $conn->prepare("SELECT * FROM users WHERE username = :u AND password = :p LIMIT 1");
+    $stmtUser->execute([
+        ':u' => $username,
+        ':p' => $password // So sánh trực tiếp password thường
+    ]);
+
+    $user = $stmtUser->fetch(PDO::FETCH_ASSOC);
+
+    if ($user) {
+        // Nếu là User thường
+        $_SESSION['username'] = $user['username'];
+        $_SESSION['id_user'] = $user['id']; // Lưu ý tên biến session để dùng ở cart
+        $_SESSION['role'] = 'user';
+        
+        // Chuyển hướng về trang chủ hoặc trang giỏ hàng
+        header('Location: ../index.php');
+        exit;
+    }
+
+    // --- 3. ĐĂNG NHẬP THẤT BẠI ---
+    header('Location: login.php?error=invalid_credentials');
     exit;
+
 } catch (PDOException $e) {
-    error_log('Login error: ' . $e->getMessage());
-    $_SESSION['error'] = 'Lỗi hệ thống. Vui lòng thử lại sau.';
-    header('Location: ../user/login.php?error=wrong');
-    exit;
+    echo "Lỗi kết nối: " . $e->getMessage();
 }
 ?>
-<?php

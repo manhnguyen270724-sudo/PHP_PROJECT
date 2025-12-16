@@ -36,16 +36,21 @@ try {
     $stmt = $conn->query("SELECT id, name, image, price, created FROM products ORDER BY id DESC LIMIT 5");
     $recentProducts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Đơn hàng mới nhất (5 đơn) - sử dụng đúng cấu trúc bảng orders
-    $stmt = $conn->query("
-        SELECT o.id, o.total, o.date_order, o.status, u.fullname, u.phone
-        FROM orders o
-        JOIN users u ON o.user_id = u.id
-        ORDER BY o.date_order DESC
-        LIMIT 5
-    ");
+    // 2. ĐƠN HÀNG MỚI NHẤT (5 đơn)
+    // SỬA LOGIC: Ưu tiên lấy tên/sđt từ bảng orders (cho khách vãng lai)
+    $sqlRecentOrders = "SELECT 
+        o.id, 
+        o.total, 
+        o.date_order, 
+        o.status, 
+        COALESCE(NULLIF(o.customer_name, ''), u.fullname, 'Khách vãng lai') as fullname, 
+        COALESCE(NULLIF(o.customer_phone, ''), u.phone, '---') as phone
+    FROM orders o
+    LEFT JOIN users u ON o.user_id = u.id
+    ORDER BY o.date_order DESC
+    LIMIT 5";
+    $stmt = $conn->query($sqlRecentOrders);
     $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
     // Sản phẩm sắp hết hàng (số lượng < 5)
     $stmt = $conn->query("
         SELECT id, name, quantity, image
@@ -72,21 +77,21 @@ if (isset($_GET['us'])) $successMsg = 'Cập nhật trạng thái đơn hàng th
 if (isset($_GET['pf'])) $errorMsg = 'Thao tác thất bại!';
 ?>
 
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - MyLiShop</title>
-    
+    <link rel="icon" type="image/png" href="images/logohong.png">
+
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    
+    <link rel="stylesheet" type="text/css" href="css/animate.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../css/admin-style.css">
 </head>
@@ -112,7 +117,7 @@ if (isset($_GET['pf'])) $errorMsg = 'Thao tác thất bại!';
             <a class="nav-link" href="category-list.php">
                 <i class="fas fa-tags"></i> Danh mục
             </a>
-            <a class="nav-link" href="order-detail.php">
+            <a class="nav-link" href="orderlist.php">
                 <i class="fas fa-shopping-cart"></i> Đơn hàng
             </a>
             <a class="nav-link" href="contact-list.php">
@@ -228,12 +233,12 @@ if (isset($_GET['pf'])) $errorMsg = 'Thao tác thất bại!';
                                 <?php foreach ($recentProducts as $p): ?>
                                     <tr>
                                         <td>
-                                            <img src="../<?= htmlspecialchars($p['image']) ?>" 
+                                            <img src="../<?= htmlspecialchars($p['image'] ?? '') ?>" 
                                                  class="product-thumb" 
-                                                 alt="<?= htmlspecialchars($p['name']) ?>">
+                                                 alt="<?= htmlspecialchars($p['name'] ?? '') ?>">
                                         </td>
-                                        <td><?= htmlspecialchars($p['name']) ?></td>
-                                        <td><strong><?= number_format($p['price']) ?>đ</strong></td>
+                                        <td><?= htmlspecialchars($p['name'] ?? '') ?></td>
+                                        <td><strong><?= number_format($p['price'] ?? 0) ?>đ</strong></td>
                                         <td>
                                             <a href="product-edit.php?idProduct=<?= $p['id'] ?>" 
                                                class="btn btn-sm btn-outline-primary action-btn">
@@ -287,7 +292,7 @@ if (isset($_GET['pf'])) $errorMsg = 'Thao tác thất bại!';
                                 <?php endforeach; ?>
                             </tbody>
                         </table>
-                        <a href="order-list.php" class="btn btn-outline-success btn-sm">
+                        <a href="orderlist.php" class="btn btn-outline-success btn-sm">
                             Xem tất cả <i class="fas fa-arrow-right"></i>
                         </a>
                     <?php else: ?>
